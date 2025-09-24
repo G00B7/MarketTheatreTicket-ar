@@ -5,17 +5,34 @@
     <title>AR Ticket</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
+     <script>
+      // A simple "lerp" (linear interpolation) smoother
+      AFRAME.registerComponent('smooth-follow', {
+        schema: { lerp: {type: 'number', default: 0.1} },
+        tick: function () {
+          if (!this.el.parentEl) return;
+          let target = this.el.object3D;
+          let source = this.el.parentEl.object3D; // marker transform
+          target.position.lerp(source.position, this.data.lerp);
+          target.quaternion.slerp(source.quaternion, this.data.lerp);
+          target.scale.lerp(source.scale, this.data.lerp);
+        }
+      });
+    </script>
   </head>
   <body style="margin: 0; overflow: hidden;">
     <a-scene embedded arjs>
       <!-- Marker (QR code style marker) -->
-     <a-marker preset="hiro"
-       smooth="true" 
-                smoothCount="10" 
-                smoothTolerance="0.01" 
-                smoothThreshold="5">>
-  <a-entity gltf-model="marketticket.glb" scale="1 1 1"></a-entity>
-</a-marker>
+      <!-- Hiro marker still detected normally -->
+      <a-marker preset="hiro">
+        <!-- Invisible container to track marker -->
+        <a-entity id="marker-container">
+          <!-- The ticket will smooth-follow this container -->
+          <a-entity gltf-model="marketticket.glb"
+                    scale="1 1 1"
+                    smooth-follow="lerp: 0.2"></a-entity>
+        </a-entity>
+      </a-marker>
       <a-entity camera></a-entity>
     </a-scene>
   </body>
