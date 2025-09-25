@@ -12,77 +12,74 @@
         tick: function () {
           if (!this.el.parentEl) return;
           let target = this.el.object3D;
-          let source = this.el.parentEl.object3D; // marker transform
+          let source = this.el.parentEl.object3D; 
           target.position.lerp(source.position, this.data.lerp);
           target.quaternion.slerp(source.quaternion, this.data.lerp);
           target.scale.lerp(source.scale, this.data.lerp);
         }
       });
 
-      // Fade helper
-      function fadeInSound(soundEl, duration = 2000, targetVol = 0.6) {
-        let audio = soundEl.components.sound.pool.children[0];
+      // Fade in helper
+      function fadeInSound(soundEntity, duration = 2000, targetVolume = 1) {
+        let audio = soundEntity.components.sound.pool.children[0];
         if (!audio) return;
+        let step = targetVolume / (duration / 100);
         audio.volume = 0;
-        soundEl.components.sound.playSound();
-        let step = targetVol / (duration / 100);
-        let current = 0;
         let interval = setInterval(() => {
-          current += step;
-          if (current >= targetVol) {
-            current = targetVol;
-            clearInterval(interval);
-          }
-          audio.volume = current;
+          audio.volume = Math.min(audio.volume + step, targetVolume);
+          if (audio.volume >= targetVolume) clearInterval(interval);
         }, 100);
       }
-
-      // Audio triggers
-      document.addEventListener("DOMContentLoaded", () => {
-        const marker = document.querySelector("#ticketMarker");
-        const confirmSound = document.querySelector("#confirmSound");
-        const ambientSound = document.querySelector("#ambientSound");
-
-        marker.addEventListener("markerFound", () => {
-          // Play chime
-          confirmSound.components.sound.playSound();
-          // After ~2s (when chime ends), fade in crowd
-          setTimeout(() => {
-            fadeInSound(ambientSound, 2000, 0.6);
-          }, 2000);
-        });
-
-        marker.addEventListener("markerLost", () => {
-          confirmSound.components.sound.stopSound();
-          ambientSound.components.sound.stopSound();
-        });
-      });
     </script>
   </head>
   <body style="margin: 0; overflow: hidden;">
     <a-scene embedded arjs>
-      <!-- Hiro marker for tracking -->
-      <a-marker preset="hiro" id="ticketMarker">
-        <!-- Container -->
+      <a-marker preset="hiro">
         <a-entity id="marker-container">
-          <!-- Ticket model -->
           <a-entity gltf-model="marketticket.glb"
                     scale="5 5 5"
-                    smooth-follow="lerp: 0.2">
-          </a-entity>
+                    smooth-follow="lerp: 0.2"></a-entity>
+        </a-entity>
 
-          <!-- Sounds -->
-          <a-sound id="confirmSound"
-                   src="chime.mp3"
-                   autoplay="false"></a-sound>
-          <a-sound id="ambientSound"
-                   src="crowd.mp3"
-                   autoplay="false"
-                   loop="true"
-                   volume="0.6"></a-sound>
+        <!-- Chime sound -->
+        <a-entity id="confirmSound"
+                  sound="src: url(https://cdn.pixabay.com/download/audio/2022/03/15/audio_f4efb2ad26.mp3?filename=silver-chime-290187.mp3); autoplay: false;">
+        </a-entity>
+
+        <!-- Ambient crowd sound -->
+        <a-entity id="ambientSound"
+                  sound="src: url(https://cdn.pixabay.com/download/audio/2021/08/09/audio_cae2d1454b.mp3?filename=crowd-noise-large-theater-70982.mp3); autoplay: false; loop: true;">
         </a-entity>
       </a-marker>
       <a-entity camera></a-entity>
     </a-scene>
+
+    <script>
+      let marker = document.querySelector("a-marker");
+      let confirmSound = document.getElementById("confirmSound");
+      let ambientSound = document.getElementById("ambientSound");
+
+      marker.addEventListener("markerFound", () => {
+        // Play chime
+        confirmSound.components.sound.playSound();
+
+        // Prepare crowd sound silently
+        let crowdAudio = ambientSound.components.sound.pool.children[0];
+        if (crowdAudio) {
+          crowdAudio.volume = 0;
+          ambientSound.components.sound.playSound();
+        }
+
+        // Fade in after 2s (when chime ends)
+        setTimeout(() => {
+          fadeInSound(ambientSound, 2000, 0.6);
+        }, 2000);
+      });
+
+      marker.addEventListener("markerLost", () => {
+        confirmSound.components.sound.stopSound();
+        ambientSound.components.sound.stopSound();
+      });
+    </script>
   </body>
 </html>
