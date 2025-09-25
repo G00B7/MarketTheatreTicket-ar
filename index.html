@@ -19,22 +19,21 @@
         }
       });
 
-      // Fade in audio helper
-      function fadeInAudio(soundEl, duration = 2000, targetVolume = 0.6) {
+      // Fade helper
+      function fadeInSound(soundEl, duration = 2000, targetVol = 0.6) {
         let audio = soundEl.components.sound.pool.children[0];
         if (!audio) return;
-        audio.volume = 0; // start silent
+        audio.volume = 0;
         soundEl.components.sound.playSound();
-        let step = targetVolume / (duration / 100); // volume increment per 100ms
-        let currentVol = 0;
+        let step = targetVol / (duration / 100);
+        let current = 0;
         let interval = setInterval(() => {
-          currentVol += step;
-          if (currentVol >= targetVolume) {
-            audio.volume = targetVolume;
-            clearInterval(interval); // stop increment
-          } else {
-            audio.volume = currentVol;
+          current += step;
+          if (current >= targetVol) {
+            current = targetVol;
+            clearInterval(interval);
           }
+          audio.volume = current;
         }, 100);
       }
 
@@ -44,35 +43,29 @@
         const confirmSound = document.querySelector("#confirmSound");
         const ambientSound = document.querySelector("#ambientSound");
 
-        let hasFadedIn = false; // ensure fade happens only once
-
         marker.addEventListener("markerFound", () => {
-          // Play chime immediately
+          // Play chime
           confirmSound.components.sound.playSound();
-
-          // Fade in crowd only once
-          if (!hasFadedIn) {
-            setTimeout(() => {
-              fadeInAudio(ambientSound, 2000, 0.6); // 2s fade after chime ends
-              hasFadedIn = true;
-            }, 2000); // wait for 2s chime
-          }
+          // After ~2s (when chime ends), fade in crowd
+          setTimeout(() => {
+            fadeInSound(ambientSound, 2000, 0.6);
+          }, 2000);
         });
 
         marker.addEventListener("markerLost", () => {
-          // Stop chime if marker is lost
           confirmSound.components.sound.stopSound();
-          // Keep crowd audio at full volume; don't stop
+          ambientSound.components.sound.stopSound();
         });
       });
     </script>
   </head>
-  <body style="margin:0; overflow:hidden;">
+  <body style="margin: 0; overflow: hidden;">
     <a-scene embedded arjs>
-      <!-- Marker for AR ticket -->
+      <!-- Hiro marker for tracking -->
       <a-marker preset="hiro" id="ticketMarker">
+        <!-- Container -->
         <a-entity id="marker-container">
-          <!-- 3D Ticket model -->
+          <!-- Ticket model -->
           <a-entity gltf-model="marketticket.glb"
                     scale="5 5 5"
                     smooth-follow="lerp: 0.2">
@@ -81,17 +74,14 @@
           <!-- Sounds -->
           <a-sound id="confirmSound"
                    src="chime.mp3"
-                   autoplay="false">
-          </a-sound>
+                   autoplay="false"></a-sound>
           <a-sound id="ambientSound"
                    src="crowd.mp3"
                    autoplay="false"
                    loop="true"
-                   volume="0">
-          </a-sound>
+                   volume="0.6"></a-sound>
         </a-entity>
       </a-marker>
-
       <a-entity camera></a-entity>
     </a-scene>
   </body>
