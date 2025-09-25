@@ -19,13 +19,13 @@
         }
       });
 
-      // Fade helper for crowd sound
-      function fadeInAudio(soundEl, duration = 2000, targetVolume = 1.0) {
-        const audio = soundEl.components.sound.pool.children[0];
+      // Proper fade-in helper
+      function fadeInAudio(audioEl, duration = 2000, targetVolume = 1.0) {
+        const audio = audioEl.components.sound.pool.children[0];
         if (!audio) return;
 
-        audio.volume = 0; // start silent
-        soundEl.components.sound.playSound();
+        audio.volume = 0;          // start silent
+        audioEl.components.sound.playSound(); // play immediately
 
         const steps = 50;
         const stepTime = duration / steps;
@@ -38,7 +38,7 @@
             currentVol = targetVolume;
             clearInterval(interval);
           }
-          audio.volume = currentVol;
+          audio.volume = currentVol;  // explicitly set volume each step
         }, stepTime);
       }
 
@@ -51,9 +51,9 @@
           // Play chime immediately
           confirmSound.components.sound.playSound();
 
-          // Start fading in crowd exactly after chime duration (2s)
+          // Start crowd fade-in after 2 seconds (chime duration)
           setTimeout(() => {
-            fadeInAudio(ambientSound, 2000, 1.0); // fade in over 2s to full volume
+            fadeInAudio(ambientSound, 2000, 1.0);
           }, 2000);
         });
 
@@ -71,7 +71,7 @@
           <a-entity gltf-model="marketticket.glb" scale="5 5 5" smooth-follow="lerp: 0.2"></a-entity>
 
           <!-- Sounds -->
-          <a-sound id="confirmSound" src="chime.mp3" autoplay="false"></a-sound>
+          <a-sound id="confirmSound" src="chime.mp3" autoplay="false" volume="1"></a-sound>
           <a-sound id="ambientSound" src="crowd.mp3" autoplay="false" loop="true" volume="0"></a-sound>
         </a-entity>
       </a-marker>
