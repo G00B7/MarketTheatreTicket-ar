@@ -5,8 +5,8 @@
     <title>AR Ticket</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
-     <script>
-      // A simple "lerp" (linear interpolation) smoother
+    <script>
+      // Smooth follow component
       AFRAME.registerComponent('smooth-follow', {
         schema: { lerp: {type: 'number', default: 0.1} },
         tick: function () {
@@ -18,19 +18,68 @@
           target.scale.lerp(source.scale, this.data.lerp);
         }
       });
+
+      // Fade helper
+      function fadeInSound(soundEl, duration = 2000, targetVol = 0.6) {
+        let audio = soundEl.components.sound.pool.children[0];
+        if (!audio) return;
+        audio.volume = 0;
+        soundEl.components.sound.playSound();
+        let step = targetVol / (duration / 100);
+        let current = 0;
+        let interval = setInterval(() => {
+          current += step;
+          if (current >= targetVol) {
+            current = targetVol;
+            clearInterval(interval);
+          }
+          audio.volume = current;
+        }, 100);
+      }
+
+      // Audio triggers
+      document.addEventListener("DOMContentLoaded", () => {
+        const marker = document.querySelector("#ticketMarker");
+        const confirmSound = document.querySelector("#confirmSound");
+        const ambientSound = document.querySelector("#ambientSound");
+
+        marker.addEventListener("markerFound", () => {
+          // Play chime
+          confirmSound.components.sound.playSound();
+          // After ~2s (when chime ends), fade in crowd
+          setTimeout(() => {
+            fadeInSound(ambientSound, 2000, 0.6);
+          }, 2000);
+        });
+
+        marker.addEventListener("markerLost", () => {
+          confirmSound.components.sound.stopSound();
+          ambientSound.components.sound.stopSound();
+        });
+      });
     </script>
   </head>
   <body style="margin: 0; overflow: hidden;">
     <a-scene embedded arjs>
-      <!-- Marker (QR code style marker) -->
-      <!-- Hiro marker still detected normally -->
-      <a-marker preset="hiro">
-        <!-- Invisible container to track marker -->
+      <!-- Hiro marker for tracking -->
+      <a-marker preset="hiro" id="ticketMarker">
+        <!-- Container -->
         <a-entity id="marker-container">
-          <!-- The ticket will smooth-follow this container -->
+          <!-- Ticket model -->
           <a-entity gltf-model="marketticket.glb"
                     scale="5 5 5"
-                    smooth-follow="lerp: 0.2"></a-entity>
+                    smooth-follow="lerp: 0.2">
+          </a-entity>
+
+          <!-- Sounds -->
+          <a-sound id="confirmSound"
+                   src="chime.mp3"
+                   autoplay="false"></a-sound>
+          <a-sound id="ambientSound"
+                   src="crowd.mp3"
+                   autoplay="false"
+                   loop="true"
+                   volume="0.6"></a-sound>
         </a-entity>
       </a-marker>
       <a-entity camera></a-entity>
