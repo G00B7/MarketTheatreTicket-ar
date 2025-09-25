@@ -8,40 +8,38 @@
     <script>
       // Smooth follow component
       AFRAME.registerComponent('smooth-follow', {
-        schema: { lerp: {type: 'number', default: 0.1} },
+        schema: { lerp: { type: 'number', default: 0.1 } },
         tick: function () {
           if (!this.el.parentEl) return;
           let target = this.el.object3D;
-          let source = this.el.parentEl.object3D; // marker transform
+          let source = this.el.parentEl.object3D;
           target.position.lerp(source.position, this.data.lerp);
           target.quaternion.slerp(source.quaternion, this.data.lerp);
           target.scale.lerp(source.scale, this.data.lerp);
         }
       });
 
-      // Fade-in helper
-      function fadeInSound(soundEl, duration = 2000, targetVol = 0.6) {
-        // Make sure audio is ready
+      // Fade-in helper for crowd sound
+      function fadeInSound(soundEl, duration = 4000, targetVol = 1.0) {
         const audio = soundEl.components.sound.pool.children[0];
         if (!audio) return;
 
-        // Start at volume 0
-        audio.volume = 0;
-
-        // Play sound
+        audio.volume = 0; // start silent
         soundEl.components.sound.playSound();
 
-        let step = targetVol / (duration / 50); // smaller steps = smoother fade
-        let current = 0;
+        let steps = 50; // number of steps in fade
+        let stepTime = duration / steps;
+        let stepAmount = targetVol / steps;
+        let currentVol = 0;
 
         const interval = setInterval(() => {
-          current += step;
-          if (current >= targetVol) {
-            current = targetVol;
+          currentVol += stepAmount;
+          if (currentVol >= targetVol) {
+            currentVol = targetVol;
             clearInterval(interval);
           }
-          audio.volume = current;
-        }, 50); // smaller interval = smoother
+          audio.volume = currentVol;
+        }, stepTime);
       }
 
       document.addEventListener("DOMContentLoaded", () => {
@@ -53,9 +51,9 @@
           // Play chime immediately
           confirmSound.components.sound.playSound();
 
-          // Fade in ambient crowd sound starting at 2s
+          // Start fading in crowd audio after 2 seconds (chime length)
           setTimeout(() => {
-            fadeInSound(ambientSound, 2000, 0.6);
+            fadeInSound(ambientSound, 4000, 1.0); // 4s fade to full volume
           }, 2000);
         });
 
@@ -68,12 +66,14 @@
   </head>
   <body style="margin: 0; overflow: hidden;">
     <a-scene embedded arjs>
+      <!-- Hiro marker -->
       <a-marker preset="hiro" id="ticketMarker">
         <a-entity id="marker-container">
           <!-- Ticket model -->
           <a-entity gltf-model="marketticket.glb"
                     scale="5 5 5"
-                    smooth-follow="lerp: 0.2"></a-entity>
+                    smooth-follow="lerp: 0.2">
+          </a-entity>
 
           <!-- Sounds -->
           <a-sound id="confirmSound"
@@ -86,6 +86,7 @@
                    volume="0"></a-sound>
         </a-entity>
       </a-marker>
+
       <a-entity camera></a-entity>
     </a-scene>
   </body>
