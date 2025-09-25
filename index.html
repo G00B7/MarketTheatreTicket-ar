@@ -8,73 +8,90 @@
     <script>
       // Smooth follow component
       AFRAME.registerComponent('smooth-follow', {
-        schema: { lerp: { type: 'number', default: 0.1 } },
+        schema: { lerp: {type: 'number', default: 0.1} },
         tick: function () {
           if (!this.el.parentEl) return;
           let target = this.el.object3D;
-          let source = this.el.parentEl.object3D;
+          let source = this.el.parentEl.object3D; // marker transform
           target.position.lerp(source.position, this.data.lerp);
           target.quaternion.slerp(source.quaternion, this.data.lerp);
           target.scale.lerp(source.scale, this.data.lerp);
         }
       });
 
-      // Proper fade-in helper
-      function fadeInAudio(audioEl, duration = 2000, targetVolume = 1.0) {
-        const audio = audioEl.components.sound.pool.children[0];
+      // Fade in audio helper
+      function fadeInAudio(soundEl, duration = 2000, targetVolume = 0.6) {
+        let audio = soundEl.components.sound.pool.children[0];
         if (!audio) return;
-
-        audio.volume = 0;          // start silent
-        audioEl.components.sound.playSound(); // play immediately
-
-        const steps = 50;
-        const stepTime = duration / steps;
-        const stepAmount = targetVolume / steps;
+        audio.volume = 0; // start silent
+        soundEl.components.sound.playSound();
+        let step = targetVolume / (duration / 100); // volume increment per 100ms
         let currentVol = 0;
-
-        const interval = setInterval(() => {
-          currentVol += stepAmount;
+        let interval = setInterval(() => {
+          currentVol += step;
           if (currentVol >= targetVolume) {
-            currentVol = targetVolume;
-            clearInterval(interval);
+            audio.volume = targetVolume;
+            clearInterval(interval); // stop increment
+          } else {
+            audio.volume = currentVol;
           }
-          audio.volume = currentVol;  // explicitly set volume each step
-        }, stepTime);
+        }, 100);
       }
 
+      // Audio triggers
       document.addEventListener("DOMContentLoaded", () => {
         const marker = document.querySelector("#ticketMarker");
         const confirmSound = document.querySelector("#confirmSound");
         const ambientSound = document.querySelector("#ambientSound");
 
+        let hasFadedIn = false; // ensure fade happens only once
+
         marker.addEventListener("markerFound", () => {
           // Play chime immediately
           confirmSound.components.sound.playSound();
 
-          // Start crowd fade-in after 2 seconds (chime duration)
-          setTimeout(() => {
-            fadeInAudio(ambientSound, 2000, 1.0);
-          }, 2000);
+          // Fade in crowd only once
+          if (!hasFadedIn) {
+            setTimeout(() => {
+              fadeInAudio(ambientSound, 2000, 0.6); // 2s fade after chime ends
+              hasFadedIn = true;
+            }, 2000); // wait for 2s chime
+          }
         });
 
         marker.addEventListener("markerLost", () => {
+          // Stop chime if marker is lost
           confirmSound.components.sound.stopSound();
-          ambientSound.components.sound.stopSound();
+          // Keep crowd audio at full volume; don't stop
         });
       });
     </script>
   </head>
-  <body style="margin: 0; overflow: hidden;">
+  <body style="margin:0; overflow:hidden;">
     <a-scene embedded arjs>
+      <!-- Marker for AR ticket -->
       <a-marker preset="hiro" id="ticketMarker">
         <a-entity id="marker-container">
-          <a-entity gltf-model="marketticket.glb" scale="5 5 5" smooth-follow="lerp: 0.2"></a-entity>
+          <!-- 3D Ticket model -->
+          <a-entity gltf-model="marketticket.glb"
+                    scale="5 5 5"
+                    smooth-follow="lerp: 0.2">
+          </a-entity>
 
           <!-- Sounds -->
-          <a-sound id="confirmSound" src="chime.mp3" autoplay="false" volume="1"></a-sound>
-          <a-sound id="ambientSound" src="crowd.mp3" autoplay="false" loop="true" volume="0"></a-sound>
+          <a-sound id="confirmSound"
+                   src="chime.mp3"
+                   autoplay="false">
+          </a-sound>
+          <a-sound id="ambientSound"
+                   src="crowd.mp3"
+                   autoplay="false"
+                   loop="true"
+                   volume="0">
+          </a-sound>
         </a-entity>
       </a-marker>
+
       <a-entity camera></a-entity>
     </a-scene>
   </body>
