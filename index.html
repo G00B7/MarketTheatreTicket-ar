@@ -19,23 +19,23 @@
         }
       });
 
-      // Fade-in helper for crowd sound
-      function fadeInSound(soundEl, duration = 4000, targetVol = 1.0) {
+      // Fade helper for crowd sound
+      function fadeInAudio(soundEl, duration = 2000, targetVolume = 1.0) {
         const audio = soundEl.components.sound.pool.children[0];
         if (!audio) return;
 
         audio.volume = 0; // start silent
         soundEl.components.sound.playSound();
 
-        let steps = 50; // number of steps in fade
-        let stepTime = duration / steps;
-        let stepAmount = targetVol / steps;
+        const steps = 50;
+        const stepTime = duration / steps;
+        const stepAmount = targetVolume / steps;
         let currentVol = 0;
 
         const interval = setInterval(() => {
           currentVol += stepAmount;
-          if (currentVol >= targetVol) {
-            currentVol = targetVol;
+          if (currentVol >= targetVolume) {
+            currentVol = targetVolume;
             clearInterval(interval);
           }
           audio.volume = currentVol;
@@ -51,9 +51,9 @@
           // Play chime immediately
           confirmSound.components.sound.playSound();
 
-          // Start fading in crowd audio after 2 seconds (chime length)
+          // Start fading in crowd exactly after chime duration (2s)
           setTimeout(() => {
-            fadeInSound(ambientSound, 4000, 1.0); // 4s fade to full volume
+            fadeInAudio(ambientSound, 2000, 1.0); // fade in over 2s to full volume
           }, 2000);
         });
 
@@ -66,27 +66,15 @@
   </head>
   <body style="margin: 0; overflow: hidden;">
     <a-scene embedded arjs>
-      <!-- Hiro marker -->
       <a-marker preset="hiro" id="ticketMarker">
         <a-entity id="marker-container">
-          <!-- Ticket model -->
-          <a-entity gltf-model="marketticket.glb"
-                    scale="5 5 5"
-                    smooth-follow="lerp: 0.2">
-          </a-entity>
+          <a-entity gltf-model="marketticket.glb" scale="5 5 5" smooth-follow="lerp: 0.2"></a-entity>
 
           <!-- Sounds -->
-          <a-sound id="confirmSound"
-                   src="chime.mp3"
-                   autoplay="false"></a-sound>
-          <a-sound id="ambientSound"
-                   src="crowd.mp3"
-                   autoplay="false"
-                   loop="true"
-                   volume="0"></a-sound>
+          <a-sound id="confirmSound" src="chime.mp3" autoplay="false"></a-sound>
+          <a-sound id="ambientSound" src="crowd.mp3" autoplay="false" loop="true" volume="0"></a-sound>
         </a-entity>
       </a-marker>
-
       <a-entity camera></a-entity>
     </a-scene>
   </body>
