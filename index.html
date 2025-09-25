@@ -44,9 +44,7 @@
         const ambientSound = document.querySelector("#ambientSound");
 
         marker.addEventListener("markerFound", () => {
-          // Play chime
           confirmSound.components.sound.playSound();
-          // After ~2s (when chime ends), fade in crowd
           setTimeout(() => {
             fadeInSound(ambientSound, 2000, 0.6);
           }, 2000);
@@ -58,8 +56,32 @@
         });
       });
     </script>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        font-family: sans-serif;
+      }
+      /* Fixed overlay header */
+      #header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        color: black;
+        font-size: 2em;
+        font-weight: bold;
+        z-index: 10;
+        background: rgba(255, 255, 255, 0.5); /* semi-transparent so camera still shows */
+        padding: 0.2em 0;
+      }
+    </style>
   </head>
-  <body style="margin: 0; overflow: hidden;">
+  <body>
+    <!-- Fixed HTML header -->
+    <div id="header">Scan your Ticket!</div>
+
     <a-scene embedded arjs>
       <!-- Hiro marker for tracking -->
       <a-marker preset="hiro" id="ticketMarker">
@@ -84,15 +106,7 @@
       </a-marker>
 
       <!-- Camera -->
-      <a-entity camera>
-        <!-- Fixed heading on screen -->
-        <a-text value="Scan your Ticket!"
-                color="black"
-                align="center"
-                position="0 0.8 -1"
-                width="3">
-        </a-text>
-      </a-entity>
+      <a-entity camera></a-entity>
     </a-scene>
   </body>
 </html>
