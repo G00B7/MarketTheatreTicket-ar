@@ -19,25 +19,31 @@
         }
       });
 
-      // Fade helper
-      function fadeInSound(soundEl, duration = 4000, targetVol = 0.6) {
-        let audio = soundEl.components.sound.pool.children[0];
+      // Fade-in helper
+      function fadeInSound(soundEl, duration = 2000, targetVol = 0.6) {
+        // Make sure audio is ready
+        const audio = soundEl.components.sound.pool.children[0];
         if (!audio) return;
+
+        // Start at volume 0
         audio.volume = 0;
+
+        // Play sound
         soundEl.components.sound.playSound();
-        let step = targetVol / (duration / 100);
+
+        let step = targetVol / (duration / 50); // smaller steps = smoother fade
         let current = 0;
-        let interval = setInterval(() => {
+
+        const interval = setInterval(() => {
           current += step;
           if (current >= targetVol) {
             current = targetVol;
             clearInterval(interval);
           }
           audio.volume = current;
-        }, 100);
+        }, 50); // smaller interval = smoother
       }
 
-      // Audio triggers
       document.addEventListener("DOMContentLoaded", () => {
         const marker = document.querySelector("#ticketMarker");
         const confirmSound = document.querySelector("#confirmSound");
@@ -47,7 +53,7 @@
           // Play chime immediately
           confirmSound.components.sound.playSound();
 
-          // After 2s (chime length), fade in crowd to full volume over 2s
+          // Fade in ambient crowd sound starting at 2s
           setTimeout(() => {
             fadeInSound(ambientSound, 2000, 0.6);
           }, 2000);
@@ -62,15 +68,12 @@
   </head>
   <body style="margin: 0; overflow: hidden;">
     <a-scene embedded arjs>
-      <!-- Hiro marker for tracking -->
       <a-marker preset="hiro" id="ticketMarker">
-        <!-- Container -->
         <a-entity id="marker-container">
           <!-- Ticket model -->
           <a-entity gltf-model="marketticket.glb"
                     scale="5 5 5"
-                    smooth-follow="lerp: 0.2">
-          </a-entity>
+                    smooth-follow="lerp: 0.2"></a-entity>
 
           <!-- Sounds -->
           <a-sound id="confirmSound"
