@@ -5,6 +5,7 @@
     <title>Echoes of the Stage</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
+
     <script>
       // Smooth follow component
       AFRAME.registerComponent('smooth-follow', {
@@ -12,7 +13,7 @@
         tick: function () {
           if (!this.el.parentEl) return;
           let target = this.el.object3D;
-          let source = this.el.parentEl.object3D; // marker transform
+          let source = this.el.parentEl.object3D;
           target.position.lerp(source.position, this.data.lerp);
           target.quaternion.slerp(source.quaternion, this.data.lerp);
           target.scale.lerp(source.scale, this.data.lerp);
@@ -37,25 +38,22 @@
         }, 100);
       }
 
-      // Audio triggers
       document.addEventListener("DOMContentLoaded", () => {
-        const marker = document.querySelector("#ticketMarker");
         const confirmSound = document.querySelector("#confirmSound");
         const ambientSound = document.querySelector("#ambientSound");
 
-        marker.addEventListener("markerFound", () => {
-          confirmSound.components.sound.playSound();
-          setTimeout(() => {
-            fadeInSound(ambientSound, 2000, 0.6);
-          }, 2000);
-        });
+        //  Fade in ambience as soon as app loads (NOT tied to marker anymore)
+        fadeInSound(ambientSound, 2000, 0.6);
 
-        marker.addEventListener("markerLost", () => {
-          confirmSound.components.sound.stopSound();
-          ambientSound.components.sound.stopSound();
+        //  Play chime when ANY marker is scanned
+        document.querySelectorAll("a-marker").forEach(marker => {
+          marker.addEventListener("markerFound", () => {
+            confirmSound.components.sound.playSound();
+          });
         });
       });
     </script>
+
     <style>
       body {
         margin: 0;
@@ -73,40 +71,48 @@
         font-size: 2em;
         font-weight: bold;
         z-index: 10;
-        background: rgba(255, 255, 255, 0.5); /* semi-transparent so camera still shows */
+        background: rgba(255, 255, 255, 0.5);
         padding: 0.2em 0;
       }
     </style>
   </head>
+
   <body>
-    <!-- Fixed HTML header -->
     <div id="header">Scan your Ticket!</div>
 
     <a-scene embedded arjs>
-      <!-- Hiro marker for tracking -->
-      <a-marker preset="hiro" id="ticketMarker">
-        <!-- Container -->
-        <a-entity id="marker-container">
-          <!-- Ticket model -->
-          <a-entity gltf-model="marketticket.glb"
-                    scale="5 5 5"
-                    smooth-follow="lerp: 0.2">
-          </a-entity>
 
-          <!-- Sounds -->
-          <a-sound id="confirmSound"
-                   src="chime.mp3"
-                   autoplay="false"></a-sound>
-          <a-sound id="ambientSound"
-                   src="crowd.mp3"
-                   autoplay="false"
-                   loop="true"
-                   volume="0.6"></a-sound>
+      <!--  GLOBAL AMBIENCE (keeps playing) -->
+      <a-sound id="ambientSound" src="crowd.mp3" autoplay="false" loop="true" volume="0.6"></a-sound>
+
+      <!--  GLOBAL CONFIRM CHIME (plays on any markerFound) -->
+      <a-sound id="confirmSound" src="chime.mp3" autoplay="false"></a-sound>
+
+
+      <!--  1. Ticket Marker (Hiro) -->
+      <a-marker preset="hiro" id="ticketMarker">
+        <a-entity>
+          <a-entity gltf-model="marketticket.glb"
+            scale="5 5 5"
+            smooth-follow="lerp: 0.2">
+          </a-entity>
         </a-entity>
       </a-marker>
 
-      <!-- Camera -->
+
+      <!--  2. Poster Marker: Triangle → Poster-1.png -->
+      <a-marker type="pattern" url="pattern-triangle.patt" id="posterTrigger1">
+        <a-image src="Poster-1.png" width="1" height="1.5" position="0 0 0"></a-image>
+      </a-marker>
+
+
+      <!--  3. Poster Marker: Circle → Poster-2.png -->
+      <a-marker type="pattern" url="pattern-circle.patt" id="posterTrigger2">
+        <a-image src="Poster-2.png" width="1" height="1.5" position="0 0 0"></a-image>
+      </a-marker>
+
       <a-entity camera></a-entity>
+
     </a-scene>
   </body>
 </html>
