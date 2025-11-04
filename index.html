@@ -3,31 +3,44 @@
   <head>
     <meta charset="utf-8">
     <title>Echoes of the Stage</title>
+
+    <!-- A-Frame + AR.js -->
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
 
-    <script>
-      // Smooth follow component
-      AFRAME.registerComponent('smooth-follow', {
-        schema: { lerp: {type: 'number', default: 0.1} },
-        tick: function () {
-          if (!this.el.parentEl) return;
-          let target = this.el.object3D;
-          let source = this.el.parentEl.object3D;
-          target.position.lerp(source.position, this.data.lerp);
-          target.quaternion.slerp(source.quaternion, this.data.lerp);
-          target.scale.lerp(source.scale, this.data.lerp);
-        }
-      });
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        font-family: sans-serif;
+      }
 
-      // Fade helper
+      #header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        color: black;
+        font-size: 2em;
+        font-weight: bold;
+        z-index: 10;
+        background: rgba(255, 255, 255, 0.5);
+        padding: 0.3em 0;
+      }
+    </style>
+
+    <script>
+      // Fade in helper for ambient audio
       function fadeInSound(soundEl, duration = 2000, targetVol = 0.6) {
         let audio = soundEl.components.sound.pool.children[0];
         if (!audio) return;
         audio.volume = 0;
         soundEl.components.sound.playSound();
+
         let step = targetVol / (duration / 100);
         let current = 0;
+
         let interval = setInterval(() => {
           current += step;
           if (current >= targetVol) {
@@ -42,77 +55,53 @@
         const confirmSound = document.querySelector("#confirmSound");
         const ambientSound = document.querySelector("#ambientSound");
 
-        //  Fade in ambience as soon as app loads (NOT tied to marker anymore)
-        fadeInSound(ambientSound, 2000, 0.6);
+        let ambientStarted = false;
 
-        //  Play chime when ANY marker is scanned
-        document.querySelectorAll("a-marker").forEach(marker => {
-          marker.addEventListener("markerFound", () => {
-            confirmSound.components.sound.playSound();
-          });
+        // ✅ PLAY CHIME FOR ANY MARKER FOUND
+        function handleMarkerFound() {
+          confirmSound.components.sound.playSound();
+
+          // Ambient ONLY starts when ticket is scanned first time
+          if (!ambientStarted) {
+            setTimeout(() => fadeInSound(ambientSound, 2000, 0.6), 2000);
+            ambientStarted = true;
+          }
+        }
+
+        // ✅ Attach listener to *every* marker
+        const markers = document.querySelectorAll("a-marker");
+        markers.forEach(marker => {
+          marker.addEventListener("markerFound", handleMarkerFound);
         });
       });
     </script>
-
-    <style>
-      body {
-        margin: 0;
-        overflow: hidden;
-        font-family: sans-serif;
-      }
-      /* Fixed overlay header */
-      #header {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        text-align: center;
-        color: black;
-        font-size: 2em;
-        font-weight: bold;
-        z-index: 10;
-        background: rgba(255, 255, 255, 0.5);
-        padding: 0.2em 0;
-      }
-    </style>
   </head>
 
   <body>
-    <div id="header">Scan your Ticket!</div>
+    <div id="header">Scan Your Ticket!</div>
 
     <a-scene embedded arjs>
 
-      <!--  GLOBAL AMBIENCE (keeps playing) -->
-      <a-sound id="ambientSound" src="crowd.mp3" autoplay="false" loop="true" volume="0.6"></a-sound>
+      <!-- ✅ GLOBAL AUDIO (not tied to any marker) -->
+      <a-entity id="confirmSound" sound="src: url(chime.mp3); autoplay: false"></a-entity>
+      <a-entity id="ambientSound" sound="src: url(crowd.mp3); autoplay: false; loop: true; volume: 0.6"></a-entity>
 
-      <!--  GLOBAL CONFIRM CHIME (plays on any markerFound) -->
-      <a-sound id="confirmSound" src="chime.mp3" autoplay="false"></a-sound>
-
-
-      <!--  1. Ticket Marker (Hiro) -->
+      <!-- ✅ TICKET MARKER (HIRO) -->
       <a-marker preset="hiro" id="ticketMarker">
-        <a-entity>
-          <a-entity gltf-model="marketticket.glb"
-            scale="5 5 5"
-            smooth-follow="lerp: 0.2">
-          </a-entity>
-        </a-entity>
+        <a-entity gltf-model="marketticket.glb" scale="5 5 5"></a-entity>
       </a-marker>
 
-
-      <!--  2. Poster Marker: Triangle → Poster-1.png -->
-      <a-marker type="pattern" url="pattern-triangle.patt" id="posterTrigger1">
-        <a-image src="Poster-1.png" width="1" height="1.5" position="0 0 0"></a-image>
+      <!-- ✅ POSTER MARKER 1 -->
+      <a-marker type="pattern" url="pattern-triangle.patt" id="posterMarker1">
+        <a-image src="poster1.png" width="2" height="3" rotation="-90 0 0"></a-image>
       </a-marker>
 
-
-      <!--  3. Poster Marker: Circle → Poster-2.png -->
-      <a-marker type="pattern" url="pattern-circle.patt" id="posterTrigger2">
-        <a-image src="Poster-2.png" width="1" height="1.5" position="0 0 0"></a-image>
+      <!-- ✅ POSTER MARKER 2 -->
+      <a-marker type="pattern" url="pattern-circle.patt" id="posterMarker2">
+        <a-image src="poster2.png" width="2" height="3" rotation="-90 0 0"></a-image>
       </a-marker>
 
       <a-entity camera></a-entity>
-
     </a-scene>
   </body>
 </html>
