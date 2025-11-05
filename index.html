@@ -57,18 +57,15 @@
 
         let ambientStarted = false;
 
-        // ✅ PLAY CHIME FOR ANY MARKER FOUND
         function handleMarkerFound() {
           confirmSound.components.sound.playSound();
 
-          // Ambient ONLY starts when ticket is scanned first time
           if (!ambientStarted) {
             setTimeout(() => fadeInSound(ambientSound, 2000, 0.6), 2000);
             ambientStarted = true;
           }
         }
 
-        // ✅ Attach listener to *every* marker
         const markers = document.querySelectorAll("a-marker");
         markers.forEach(marker => {
           marker.addEventListener("markerFound", handleMarkerFound);
@@ -80,9 +77,12 @@
   <body>
     <div id="header">Scan Your Ticket!</div>
 
-    <a-scene embedded arjs>
+    <a-scene 
+      embedded
+      arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;"
+    >
 
-      <!-- ✅ GLOBAL AUDIO (not tied to any marker) -->
+      <!-- ✅ GLOBAL AUDIO -->
       <a-entity id="confirmSound" sound="src: url(chime.mp3); autoplay: false"></a-entity>
       <a-entity id="ambientSound" sound="src: url(crowd.mp3); autoplay: false; loop: true; volume: 0.6"></a-entity>
 
@@ -101,7 +101,15 @@
         <a-image src="poster2.png" width="2" height="3" rotation="-90 0 0"></a-image>
       </a-marker>
 
-      <a-entity camera></a-entity>
+      <!-- ✅ GPS-PLACED MIC MODEL -->
+      <a-entity 
+        gltf-model="mic.glb"
+        scale="5 5 5"
+        gps-entity-place="latitude: -26.117458; longitude: 28.0246922;"
+      ></a-entity>
+
+      <!-- ✅ GPS + Marker Camera -->
+      <a-entity camera gps-camera rotation-reader></a-entity>
     </a-scene>
   </body>
 </html>
