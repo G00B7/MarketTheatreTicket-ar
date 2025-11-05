@@ -1,10 +1,17 @@
+That's an exciting AR.js project! Modifying the size and position of the virtual content (your posters) over their respective markers is a straightforward change in A-Frame.
+
+You'll need to adjust the width, height, and position attributes of the <a-image> entities inside the poster markers.
+
+Here is the updated code for your POSTER MARKER 1 and POSTER MARKER 2:
+
+HTML
+
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8">
     <title>Echoes of the Stage</title>
 
-    <!-- A-Frame + AR.js -->
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
 
@@ -82,23 +89,31 @@
 
     <a-scene embedded arjs>
 
-      <!-- ✅ GLOBAL AUDIO (not tied to any marker) -->
       <a-entity id="confirmSound" sound="src: url(chime.mp3); autoplay: false"></a-entity>
       <a-entity id="ambientSound" sound="src: url(crowd.mp3); autoplay: false; loop: true; volume: 0.6"></a-entity>
 
-      <!-- ✅ TICKET MARKER (HIRO) -->
       <a-marker preset="hiro" id="ticketMarker">
         <a-entity gltf-model="marketticket.glb" scale="5 5 5"></a-entity>
       </a-marker>
 
-      <!-- ✅ POSTER MARKER 1 -->
       <a-marker type="pattern" url="pattern-triangle.patt" id="posterMarker1">
-        <a-image src="poster1.png" width="2" height="3" rotation="-90 0 0"></a-image>
+        <a-image 
+          src="poster1.png" 
+          width="4" 
+          height="6" 
+          rotation="-90 0 0" 
+          position="-0.5 0.5 0"
+        ></a-image>
       </a-marker>
 
-      <!-- ✅ POSTER MARKER 2 -->
       <a-marker type="pattern" url="pattern-circle.patt" id="posterMarker2">
-        <a-image src="poster2.png" width="2" height="3" rotation="-90 0 0"></a-image>
+        <a-image 
+          src="poster2.png" 
+          width="4" 
+          height="6" 
+          rotation="-90 0 0" 
+          position="-0.5 0.5 0"
+        ></a-image>
       </a-marker>
 
       <a-entity camera></a-entity>
