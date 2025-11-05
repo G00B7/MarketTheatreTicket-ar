@@ -81,13 +81,16 @@
 
     <a-scene embedded arjs>
 
+      <!-- ✅ Sound Effects -->
       <a-entity id="confirmSound" sound="src: url(chime.mp3); autoplay: false"></a-entity>
       <a-entity id="ambientSound" sound="src: url(crowd.mp3); autoplay: false; loop: true; volume: 0.6"></a-entity>
 
+      <!-- ✅ Ticket -->
       <a-marker preset="hiro" id="ticketMarker">
         <a-entity gltf-model="marketticket.glb" scale="5 5 5"></a-entity>
       </a-marker>
 
+      <!-- ✅ Poster 1 -->
       <a-marker type="pattern" url="pattern-triangle.patt" id="posterMarker1">
         <a-image 
           src="poster1.png" 
@@ -98,6 +101,7 @@
         ></a-image>
       </a-marker>
 
+      <!-- ✅ Poster 2 -->
       <a-marker type="pattern" url="pattern-circle.patt" id="posterMarker2">
         <a-image 
           src="poster2.png" 
@@ -106,6 +110,16 @@
           rotation="-90 0 0" 
           position="-1.5 1.5 0"
         ></a-image>
+      </a-marker>
+
+      <!-- ✅ NEW SCRIPT MARKER -->
+      <a-marker type="pattern" url="pattern-t.patt" id="scriptMarker">
+        <a-entity 
+          gltf-model="script.glb" 
+          scale="1 1 1"
+          rotation="0 0 0"
+          position="0 0 0"
+        ></a-entity>
       </a-marker>
 
       <a-entity camera></a-entity>
