@@ -4,7 +4,6 @@
     <meta charset="utf-8">
     <title>Echoes of the Stage</title>
 
-    <!-- A-Frame + AR.js -->
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
 
@@ -31,7 +30,6 @@
     </style>
 
     <script>
-      // Fade in helper for ambient audio
       function fadeInSound(soundEl, duration = 2000, targetVol = 0.6) {
         let audio = soundEl.components.sound.pool.children[0];
         if (!audio) return;
@@ -57,18 +55,15 @@
 
         let ambientStarted = false;
 
-        // Play chime for any marker found
         function handleMarkerFound() {
           confirmSound.components.sound.playSound();
 
-          // Ambient ONLY starts when ticket is scanned first time
-          if (!ambientStarted && this.id === "ticketMarker") {
+          if (!ambientStarted) {
             setTimeout(() => fadeInSound(ambientSound, 2000, 0.6), 2000);
             ambientStarted = true;
           }
         }
 
-        // Attach listener to all markers
         const markers = document.querySelectorAll("a-marker");
         markers.forEach(marker => {
           marker.addEventListener("markerFound", handleMarkerFound);
@@ -82,36 +77,57 @@
 
     <a-scene embedded arjs>
 
-      <!-- GLOBAL AUDIO -->
+      <!-- Global audio -->
       <a-entity id="confirmSound" sound="src: url(chime.mp3); autoplay: false"></a-entity>
       <a-entity id="ambientSound" sound="src: url(crowd.mp3); autoplay: false; loop: true; volume: 0.6"></a-entity>
 
-      <!-- TICKET MARKER -->
+      <!-- Ticket marker -->
       <a-marker preset="hiro" id="ticketMarker">
         <a-entity gltf-model="marketticket.glb" scale="5 5 5"></a-entity>
       </a-marker>
 
-      <!-- POSTER MARKER 1 -->
+      <!-- Poster marker 1 -->
       <a-marker type="pattern" url="pattern-triangle.patt" id="posterMarker1">
-        <a-image src="poster1.png" width="4" height="6" rotation="-90 0 0" position="-1.5 1.5 0"></a-image>
+        <a-image 
+          src="poster1.png" 
+          width="4"
+          height="6"
+          rotation="-90 0 0"
+          position="-1.5 1.5 0"
+        ></a-image>
       </a-marker>
 
-      <!-- POSTER MARKER 2 -->
+      <!-- Poster marker 2 -->
       <a-marker type="pattern" url="pattern-circle.patt" id="posterMarker2">
-        <a-image src="poster2.png" width="4" height="6" rotation="-90 0 0" position="-1.5 1.5 0"></a-image>
+        <a-image 
+          src="poster2.png" 
+          width="4"
+          height="6"
+          rotation="-90 0 0"
+          position="-1.5 1.5 0"
+        ></a-image>
       </a-marker>
 
-      <!-- SCRIPT MARKER -->
+      <!-- ✅ SCRIPT MARKER -->
       <a-marker type="pattern" url="pattern-t.patt" id="scriptMarker">
-        <a-entity gltf-model="script.glb" scale="1 1 1" rotation="0 0 0" position="0 0 0"></a-entity>
+        <a-entity
+          gltf-model="script.glb"
+          scale="1 1 1"
+          position="0 0 0"
+          rotation="0 0 0"
+        ></a-entity>
       </a-marker>
 
-      <!-- MICROPHONE MARKER -->
+      <!-- ✅ MICROPHONE MARKER (pattern-i.patt) -->
       <a-marker type="pattern" url="pattern-i.patt" id="micMarker">
-        <a-entity gltf-model="mic.glb" scale="1 1 1" rotation="0 0 0" position="0 0 0"></a-entity>
+        <a-entity
+          gltf-model="mic.glb"
+          scale="1 1 1"
+          position="0 0 0"
+          rotation="0 0 0"
+        ></a-entity>
       </a-marker>
 
-      <!-- CAMERA -->
       <a-entity camera></a-entity>
     </a-scene>
   </body>
