@@ -27,6 +27,23 @@
         background: rgba(255, 255, 255, 0.5);
         padding: 0.3em 0;
       }
+
+      /* Script button */
+      #scriptButton {
+        display: none; /* Hidden by default */
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 20;
+        padding: 1em 2em;
+        font-size: 1.2em;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+      }
     </style>
 
     <script>
@@ -37,7 +54,6 @@
         soundEl.components.sound.playSound();
         let step = targetVol / (duration / 100);
         let current = 0;
-
         let interval = setInterval(() => {
           current += step;
           if (current >= targetVol) {
@@ -52,10 +68,8 @@
       function fadeOutSound(soundEl, duration = 2000) {
         let audio = soundEl.components.sound.pool.children[0];
         if (!audio) return;
-
         let step = audio.volume / (duration / 100);
         let current = audio.volume;
-
         let interval = setInterval(() => {
           current -= step;
           if (current <= 0) {
@@ -70,41 +84,50 @@
       document.addEventListener("DOMContentLoaded", () => {
         const confirmSound = document.querySelector("#confirmSound");
         const ambientSound = document.querySelector("#ambientSound");
+        const scriptButton = document.querySelector("#scriptButton");
+        const scriptAudio = document.querySelector("#scriptAudio");
 
         let ambientStarted = false;
         let ambientPaused = false;
 
         function handleMarkerFound() {
           confirmSound.components.sound.playSound();
-
-          // Ambient ONLY starts after ticket is scanned first time
           if (!ambientStarted) {
             setTimeout(() => fadeInSound(ambientSound, 2000, 0.6), 2000);
             ambientStarted = true;
           }
         }
 
+        // Attach chime to every marker
         const markers = document.querySelectorAll("a-marker");
-        markers.forEach(marker => {
-          marker.addEventListener("markerFound", handleMarkerFound);
+        markers.forEach(marker => marker.addEventListener("markerFound", handleMarkerFound));
+
+        // Pause ambient for mic marker
+        const micMarker = document.querySelector("#micMarker");
+        micMarker.addEventListener("markerFound", () => {
+          if (ambientStarted && !ambientPaused) {
+            fadeOutSound(ambientSound, 1000);
+            ambientPaused = true;
+          }
         });
 
-        // Mic marker (and optionally script later) will pause ambient permanently
-        const pauseAmbientMarkers = ["#micMarker"];
-        pauseAmbientMarkers.forEach(id => {
-          const marker = document.querySelector(id);
+        // Show script button only when script marker is visible
+        const scriptMarker = document.querySelector("#scriptMarker");
+        scriptMarker.addEventListener("markerFound", () => {
+          scriptButton.style.display = "block";
+          // Pause ambient if needed
+          if (ambientStarted && !ambientPaused) {
+            fadeOutSound(ambientSound, 1000);
+            ambientPaused = true;
+          }
+        });
+        scriptMarker.addEventListener("markerLost", () => {
+          scriptButton.style.display = "none";
+        });
 
-          marker.addEventListener("markerFound", () => {
-            if (ambientStarted && !ambientPaused) {
-              fadeOutSound(ambientSound, 1000);
-              ambientPaused = true;
-            }
-          });
-
-          // Do NOT fade back in for now
-          marker.addEventListener("markerLost", () => {
-            // Nothing happens yet
-          });
+        // Play audio when button clicked
+        scriptButton.addEventListener("click", () => {
+          scriptAudio.play();
         });
       });
     </script>
@@ -112,6 +135,12 @@
 
   <body>
     <div id="header">Scan Your Ticket!</div>
+
+    <!-- Script audio element -->
+    <audio id="scriptAudio" src="script.mp3"></audio>
+
+    <!-- Button overlay -->
+    <button id="scriptButton">Tap to listen</button>
 
     <a-scene embedded arjs>
       <!-- Global audio -->
@@ -131,7 +160,7 @@
         <a-image src="poster2.png" width="4" height="6" rotation="-90 0 0" position="-1.5 1.5 0"></a-image>
       </a-marker>
 
-      <!-- Script marker (kept for later tap/audio) -->
+      <!-- Script marker -->
       <a-marker type="pattern" url="pattern-t.patt" id="scriptMarker">
         <a-entity gltf-model="script.glb" scale="1 1 1" position="0 0 0" rotation="0 0 0"></a-entity>
       </a-marker>
