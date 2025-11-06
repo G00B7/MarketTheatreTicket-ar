@@ -44,6 +44,36 @@
         border-radius: 10px;
         cursor: pointer;
       }
+
+      /* Note overlay */
+      #noteOverlay {
+        display: none;
+        position: fixed;
+        top: 20%;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: rgba(255,255,255,0.9);
+        padding: 2em;
+        border-radius: 10px;
+        z-index: 20;
+        width: 80%;
+        max-width: 400px;
+        text-align: center;
+      }
+
+      #noteOverlay input {
+        width: 100%;
+        padding: 0.5em;
+        margin-top: 1em;
+        font-size: 1em;
+      }
+
+      #noteOverlay button {
+        margin-top: 1em;
+        padding: 0.5em 1em;
+        font-size: 1em;
+        cursor: pointer;
+      }
     </style>
 
     <script>
@@ -87,6 +117,10 @@
         const scriptButton = document.querySelector("#scriptButton");
         const scriptAudio = document.querySelector("#scriptAudio");
 
+        const noteOverlay = document.querySelector("#noteOverlay");
+        const noteInput = document.querySelector("#noteInput");
+        const saveNoteBtn = document.querySelector("#saveNoteBtn");
+
         let ambientStarted = false;
         let ambientPaused = false;
 
@@ -115,7 +149,6 @@
         const scriptMarker = document.querySelector("#scriptMarker");
         scriptMarker.addEventListener("markerFound", () => {
           scriptButton.style.display = "block";
-          // Pause ambient if needed
           if (ambientStarted && !ambientPaused) {
             fadeOutSound(ambientSound, 1000);
             ambientPaused = true;
@@ -125,12 +158,12 @@
           scriptButton.style.display = "none";
         });
 
-        // Play audio when button clicked
+        // Play script audio
         scriptButton.addEventListener("click", () => {
           scriptAudio.play();
         });
 
- // Note marker logic
+        // Show note overlay when note marker is found
         const noteMarker = document.querySelector("#noteMarker");
         noteMarker.addEventListener("markerFound", () => {
           noteOverlay.style.display = "block";
@@ -139,13 +172,15 @@
           noteOverlay.style.display = "none";
         });
 
+        // Save note
         saveNoteBtn.addEventListener("click", () => {
           const noteText = noteInput.value.trim();
           if (!noteText) {
             alert("Please type a message before saving!");
             return;
           }
-          // Save locally for now
+
+          // Save locally
           localStorage.setItem("userNote", noteText);
 
           // Hide overlay
@@ -158,7 +193,6 @@
           alert("Thank you! Your note has been saved.");
         });
       });
-
     </script>
   </head>
 
@@ -168,8 +202,16 @@
     <!-- Script audio element -->
     <audio id="scriptAudio" src="script.mp3"></audio>
 
-    <!-- Button overlay -->
+    <!-- Script button overlay -->
     <button id="scriptButton">Tap to listen</button>
+
+    <!-- Note overlay -->
+    <div id="noteOverlay">
+      <h2>Leave a Note</h2>
+      <p>We'd love to hear any thoughts you had about your experience!</p>
+      <input type="text" id="noteInput" placeholder="Type your note here">
+      <button id="saveNoteBtn">Save</button>
+    </div>
 
     <a-scene embedded arjs>
       <!-- Global audio -->
@@ -199,7 +241,7 @@
         <a-entity gltf-model="mic.glb" scale="1 1 1" position="0 0 0" rotation="0 0 0"></a-entity>
       </a-marker>
 
-        <!-- Note marker -->
+      <!-- Note marker -->
       <a-marker type="pattern" url="pattern-bridge.patt" id="noteMarker">
         <a-entity gltf-model="note.glb" scale="1 1 1" position="0 0 0" rotation="0 0 0"></a-entity>
       </a-marker>
