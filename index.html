@@ -130,43 +130,6 @@
 
 
 
-        // ------------------------------------------------------
-        // ✅ NOTE DETACH SYSTEM (Sticky note stays on screen)
-        // ------------------------------------------------------
-        const noteMarker = document.querySelector("#noteMarker");
-        const noteModel = document.querySelector("#noteModel");
-
-        let detachedNote = null;
-
-        noteMarker.addEventListener("markerFound", () => {
-
-          // Create floating version once
-          if (!detachedNote) {
-            detachedNote = document.createElement("a-entity");
-            detachedNote.setAttribute("gltf-model", "note.glb");
-            detachedNote.setAttribute("scale", "1 1 1");
-            detachedNote.setAttribute("visible", "false");
-            document.querySelector("a-scene").appendChild(detachedNote);
-          }
-
-          // World-space position
-          const pos = new THREE.Vector3();
-          noteModel.object3D.getWorldPosition(pos);
-
-          // World-space rotation
-          const rot = new THREE.Euler();
-          noteModel.object3D.getWorldRotation(rot);
-
-          // Move detached note into world
-          detachedNote.object3D.position.copy(pos);
-          detachedNote.object3D.rotation.copy(rot);
-          detachedNote.setAttribute("visible", "true");
-        });
-
-        noteMarker.addEventListener("markerLost", () => {
-          // Leave detached note in place — no hiding
-        });
-      });
     </script>
   </head>
 
