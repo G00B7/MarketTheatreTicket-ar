@@ -24,13 +24,13 @@
         font-size: 2em;
         font-weight: bold;
         z-index: 10;
-        background: rgba(255, 255, 255, 0.5);
+        background: none; /* Transparent */
         padding: 0.3em 0;
       }
 
       /* Script button */
       #scriptButton {
-        display: none; /* Hidden by default */
+        display: none;
         position: fixed;
         bottom: 20px;
         left: 50%;
@@ -52,7 +52,7 @@
         top: 20%;
         left: 50%;
         transform: translateX(-50%);
-        background-color: rgba(255,255,255,0);
+        background-color: rgba(255,255,255,0); /* Fully transparent */
         padding: 2em;
         border-radius: 10px;
         z-index: 20;
@@ -121,6 +121,8 @@
         const noteInput = document.querySelector("#noteInput");
         const saveNoteBtn = document.querySelector("#saveNoteBtn");
 
+        const header = document.querySelector("#header");
+
         let ambientStarted = false;
         let ambientPaused = false;
 
@@ -135,6 +137,15 @@
         // Attach chime to every marker
         const markers = document.querySelectorAll("a-marker");
         markers.forEach(marker => marker.addEventListener("markerFound", handleMarkerFound));
+
+        // Hide header when ticket is found
+        const ticketMarker = document.querySelector("#ticketMarker");
+        ticketMarker.addEventListener("markerFound", () => {
+          header.style.display = "none";
+        });
+        ticketMarker.addEventListener("markerLost", () => {
+          header.style.display = "block"; // Optional: show header again if ticket lost
+        });
 
         // Pause ambient for mic marker
         const micMarker = document.querySelector("#micMarker");
