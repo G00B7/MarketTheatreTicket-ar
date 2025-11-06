@@ -108,10 +108,20 @@
         ></a-image>
       </a-marker>
 
-      <!-- ✅ SCRIPT MARKER (pattern-t.patt) -->
+      <!-- ✅ SCRIPT MARKER -->
       <a-marker type="pattern" url="pattern-t.patt" id="scriptMarker">
         <a-entity
           gltf-model="script.glb"
+          scale="1 1 1"
+          position="0 0 0"
+          rotation="0 0 0"
+        ></a-entity>
+      </a-marker>
+
+      <!-- ✅ MICROPHONE MARKER (pattern-i.patt) -->
+      <a-marker type="pattern" url="pattern-i.patt" id="micMarker">
+        <a-entity
+          gltf-model="mic.glb"
           scale="1 1 1"
           position="0 0 0"
           rotation="0 0 0"
