@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <title>Echoes of the Stage</title>
 
+    <!-- A-Frame + AR.js -->
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
 
@@ -30,16 +31,28 @@
     </style>
 
     <script>
+      // Smooth follow component for stabilizing objects
+      AFRAME.registerComponent('smooth-follow', {
+        schema: { lerp: {type: 'number', default: 0.2} },
+        tick: function () {
+          if (!this.el.parentEl) return;
+          const target = this.el.object3D;
+          const source = this.el.parentEl.object3D;
+          target.position.lerp(source.position, this.data.lerp);
+          target.quaternion.slerp(source.quaternion, this.data.lerp);
+          target.scale.lerp(source.scale, this.data.lerp);
+        }
+      });
+
+      // Fade in helper for ambient audio
       function fadeInSound(soundEl, duration = 2000, targetVol = 0.6) {
-        let audio = soundEl.components.sound.pool.children[0];
+        const audio = soundEl.components.sound.pool.children[0];
         if (!audio) return;
         audio.volume = 0;
         soundEl.components.sound.playSound();
-
         let step = targetVol / (duration / 100);
         let current = 0;
-
-        let interval = setInterval(() => {
+        const interval = setInterval(() => {
           current += step;
           if (current >= targetVol) {
             current = targetVol;
@@ -55,15 +68,16 @@
 
         let ambientStarted = false;
 
+        // Play chime for any marker, start ambient only once
         function handleMarkerFound() {
           confirmSound.components.sound.playSound();
-
           if (!ambientStarted) {
             setTimeout(() => fadeInSound(ambientSound, 2000, 0.6), 2000);
             ambientStarted = true;
           }
         }
 
+        // Attach listener to all markers
         const markers = document.querySelectorAll("a-marker");
         markers.forEach(marker => {
           marker.addEventListener("markerFound", handleMarkerFound);
@@ -77,57 +91,36 @@
 
     <a-scene embedded arjs>
 
-      <!-- Global audio -->
+      <!-- Global Audio -->
       <a-entity id="confirmSound" sound="src: url(chime.mp3); autoplay: false"></a-entity>
       <a-entity id="ambientSound" sound="src: url(crowd.mp3); autoplay: false; loop: true; volume: 0.6"></a-entity>
 
-      <!-- Ticket marker -->
+      <!-- Ticket Marker (HIRO) -->
       <a-marker preset="hiro" id="ticketMarker">
-        <a-entity gltf-model="marketticket.glb" scale="5 5 5"></a-entity>
+        <a-entity gltf-model="marketticket.glb" scale="5 5 5" smooth-follow="lerp: 0.2"></a-entity>
       </a-marker>
 
-      <!-- Poster marker 1 -->
+      <!-- Poster Marker 1 -->
       <a-marker type="pattern" url="pattern-triangle.patt" id="posterMarker1">
-        <a-image 
-          src="poster1.png" 
-          width="4"
-          height="6"
-          rotation="-90 0 0"
-          position="-1.5 1.5 0"
-        ></a-image>
+        <a-image src="poster1.png" width="4" height="6" rotation="-90 0 0" position="-1.5 1.5 0"></a-image>
       </a-marker>
 
-      <!-- Poster marker 2 -->
+      <!-- Poster Marker 2 -->
       <a-marker type="pattern" url="pattern-circle.patt" id="posterMarker2">
-        <a-image 
-          src="poster2.png" 
-          width="4"
-          height="6"
-          rotation="-90 0 0"
-          position="-1.5 1.5 0"
-        ></a-image>
+        <a-image src="poster2.png" width="4" height="6" rotation="-90 0 0" position="-1.5 1.5 0"></a-image>
       </a-marker>
 
-      <!-- ✅ SCRIPT MARKER -->
-      <a-marker type="pattern" url="pattern-t.patt" id="scriptMarker">
-        <a-entity
-          gltf-model="script.glb"
-          scale="1 1 1"
-          position="0 0 0"
-          rotation="0 0 0"
-        ></a-entity>
-      </a-marker>
-
-      <!-- ✅ MICROPHONE MARKER (pattern-i.patt) -->
+      <!-- Microphone Marker -->
       <a-marker type="pattern" url="pattern-i.patt" id="micMarker">
-        <a-entity
-          gltf-model="mic.glb"
-          scale="1 1 1"
-          position="0 0 0"
-          rotation="0 0 0"
-        ></a-entity>
+        <a-entity gltf-model="mic.glb" scale="1.5 1.5 1.5" smooth-follow="lerp: 0.2"></a-entity>
       </a-marker>
 
+      <!-- Script Marker -->
+      <a-marker type="pattern" url="pattern-t.patt" id="scriptMarker">
+        <a-entity gltf-model="script.glb" scale="2 2 2" smooth-follow="lerp: 0.2"></a-entity>
+      </a-marker>
+
+      <!-- Camera -->
       <a-entity camera></a-entity>
     </a-scene>
   </body>
