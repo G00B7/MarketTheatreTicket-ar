@@ -31,28 +31,30 @@
     </style>
 
     <script>
-      // Smooth follow component for stabilizing objects
+      // Smooth follow component
       AFRAME.registerComponent('smooth-follow', {
-        schema: { lerp: {type: 'number', default: 0.2} },
+        schema: { lerp: { type: 'number', default: 0.3 } },
         tick: function () {
           if (!this.el.parentEl) return;
-          const target = this.el.object3D;
-          const source = this.el.parentEl.object3D;
+          let target = this.el.object3D;
+          let source = this.el.parentEl.object3D;
           target.position.lerp(source.position, this.data.lerp);
           target.quaternion.slerp(source.quaternion, this.data.lerp);
           target.scale.lerp(source.scale, this.data.lerp);
         }
       });
 
-      // Fade in helper for ambient audio
+      // Fade helper for ambient audio
       function fadeInSound(soundEl, duration = 2000, targetVol = 0.6) {
-        const audio = soundEl.components.sound.pool.children[0];
+        let audio = soundEl.components.sound.pool.children[0];
         if (!audio) return;
         audio.volume = 0;
         soundEl.components.sound.playSound();
+
         let step = targetVol / (duration / 100);
         let current = 0;
-        const interval = setInterval(() => {
+
+        let interval = setInterval(() => {
           current += step;
           if (current >= targetVol) {
             current = targetVol;
@@ -68,9 +70,11 @@
 
         let ambientStarted = false;
 
-        // Play chime for any marker, start ambient only once
+        // Play chime for ANY marker
         function handleMarkerFound() {
           confirmSound.components.sound.playSound();
+
+          // Ambient ONLY starts once from ticket
           if (!ambientStarted) {
             setTimeout(() => fadeInSound(ambientSound, 2000, 0.6), 2000);
             ambientStarted = true;
@@ -91,37 +95,41 @@
 
     <a-scene embedded arjs>
 
-      <!-- Global Audio -->
+      <!-- Global audio -->
       <a-entity id="confirmSound" sound="src: url(chime.mp3); autoplay: false"></a-entity>
       <a-entity id="ambientSound" sound="src: url(crowd.mp3); autoplay: false; loop: true; volume: 0.6"></a-entity>
 
-      <!-- Ticket Marker (HIRO) -->
+      <!-- Ticket marker (hiro) -->
       <a-marker preset="hiro" id="ticketMarker">
-        <a-entity gltf-model="marketticket.glb" scale="5 5 5" smooth-follow="lerp: 0.2"></a-entity>
+        <a-entity gltf-model="marketticket.glb" scale="5 5 5"></a-entity>
       </a-marker>
 
-      <!-- Poster Marker 1 -->
+      <!-- Poster markers -->
       <a-marker type="pattern" url="pattern-triangle.patt" id="posterMarker1">
         <a-image src="poster1.png" width="4" height="6" rotation="-90 0 0" position="-1.5 1.5 0"></a-image>
       </a-marker>
 
-      <!-- Poster Marker 2 -->
       <a-marker type="pattern" url="pattern-circle.patt" id="posterMarker2">
         <a-image src="poster2.png" width="4" height="6" rotation="-90 0 0" position="-1.5 1.5 0"></a-image>
       </a-marker>
 
-      <!-- Microphone Marker -->
-      <a-marker type="pattern" url="pattern-i.patt" id="micMarker">
-        <a-entity gltf-model="mic.glb" scale="1.5 1.5 1.5" smooth-follow="lerp: 0.2"></a-entity>
+      <!-- Script marker (pattern-t.patt) -->
+      <a-marker type="pattern" url="pattern-t.patt" id="scriptMarker">
+        <a-entity smooth-follow="lerp: 0.3">
+          <a-entity gltf-model="script.glb" scale="1.5 1.5 1.5"></a-entity>
+        </a-entity>
       </a-marker>
 
-      <!-- Script Marker -->
-      <a-marker type="pattern" url="pattern-t.patt" id="scriptMarker">
-        <a-entity gltf-model="script.glb" scale="2 2 2" smooth-follow="lerp: 0.2"></a-entity>
+      <!-- Microphone marker (pattern-i.patt) -->
+      <a-marker type="pattern" url="pattern-i.patt" id="micMarker">
+        <a-entity smooth-follow="lerp: 0.3">
+          <a-entity gltf-model="mic.glb" scale="1.5 1.5 1.5"></a-entity>
+        </a-entity>
       </a-marker>
 
       <!-- Camera -->
       <a-entity camera></a-entity>
+
     </a-scene>
   </body>
 </html>
