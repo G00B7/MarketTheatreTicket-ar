@@ -30,7 +30,7 @@
 
       /* Script button */
       #scriptButton {
-        display: none;
+        display: none; /* Hidden by default */
         position: fixed;
         bottom: 20px;
         left: 50%;
@@ -42,42 +42,6 @@
         color: white;
         border: none;
         border-radius: 10px;
-        cursor: pointer;
-      }
-
-      /* Note Overlay */
-      #noteOverlay {
-        display: none;
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 80%;
-        max-width: 400px;
-        background: rgba(255,255,255,0.95);
-        padding: 20px;
-        border-radius: 15px;
-        text-align: center;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-        z-index: 50;
-      }
-      #noteOverlay h2 { margin: 0 0 10px 0; }
-      #noteOverlay p { margin: 0 0 15px 0; }
-      #noteOverlay textarea {
-        width: 100%;
-        height: 80px;
-        resize: none;
-        padding: 10px;
-        border-radius: 8px;
-        border: 1px solid #ccc;
-        margin-bottom: 15px;
-      }
-      #noteOverlay button {
-        padding: 10px 20px;
-        font-size: 1.1em;
-        background-color: #ffcc00;
-        border: none;
-        border-radius: 8px;
         cursor: pointer;
       }
     </style>
@@ -123,14 +87,9 @@
         const scriptButton = document.querySelector("#scriptButton");
         const scriptAudio = document.querySelector("#scriptAudio");
 
-        const noteOverlay = document.getElementById("noteOverlay");
-        const noteInput = document.getElementById("noteInput");
-        const saveNoteBtn = document.getElementById("saveNote");
-
         let ambientStarted = false;
         let ambientPaused = false;
 
-        // Handle chime and ambient for any marker
         function handleMarkerFound() {
           confirmSound.components.sound.playSound();
           if (!ambientStarted) {
@@ -139,10 +98,11 @@
           }
         }
 
+        // Attach chime to every marker
         const markers = document.querySelectorAll("a-marker");
         markers.forEach(marker => marker.addEventListener("markerFound", handleMarkerFound));
 
-        // Mic marker pauses ambient
+        // Pause ambient for mic marker
         const micMarker = document.querySelector("#micMarker");
         micMarker.addEventListener("markerFound", () => {
           if (ambientStarted && !ambientPaused) {
@@ -151,10 +111,11 @@
           }
         });
 
-        // Script marker logic
+        // Show script button only when script marker is visible
         const scriptMarker = document.querySelector("#scriptMarker");
         scriptMarker.addEventListener("markerFound", () => {
           scriptButton.style.display = "block";
+          // Pause ambient if needed
           if (ambientStarted && !ambientPaused) {
             fadeOutSound(ambientSound, 1000);
             ambientPaused = true;
@@ -163,11 +124,13 @@
         scriptMarker.addEventListener("markerLost", () => {
           scriptButton.style.display = "none";
         });
+
+        // Play audio when button clicked
         scriptButton.addEventListener("click", () => {
           scriptAudio.play();
         });
 
-        // Note marker logic
+ // Note marker logic
         const noteMarker = document.querySelector("#noteMarker");
         noteMarker.addEventListener("markerFound", () => {
           noteOverlay.style.display = "block";
@@ -195,23 +158,18 @@
           alert("Thank you! Your note has been saved.");
         });
       });
+
     </script>
   </head>
 
   <body>
     <div id="header">Scan Your Ticket!</div>
 
-    <!-- Script audio -->
+    <!-- Script audio element -->
     <audio id="scriptAudio" src="script.mp3"></audio>
-    <button id="scriptButton">Tap to listen</button>
 
-    <!-- Note overlay -->
-    <div id="noteOverlay">
-      <h2>Leave a Note</h2>
-      <p>We'd love to hear any thoughts you had about your experience!</p>
-      <textarea id="noteInput" placeholder="Type your message..."></textarea>
-      <button id="saveNote">Save</button>
-    </div>
+    <!-- Button overlay -->
+    <button id="scriptButton">Tap to listen</button>
 
     <a-scene embedded arjs>
       <!-- Global audio -->
@@ -233,17 +191,17 @@
 
       <!-- Script marker -->
       <a-marker type="pattern" url="pattern-t.patt" id="scriptMarker">
-        <a-entity gltf-model="script.glb" scale="1 1 1"></a-entity>
+        <a-entity gltf-model="script.glb" scale="1 1 1" position="0 0 0" rotation="0 0 0"></a-entity>
       </a-marker>
 
       <!-- Microphone marker -->
       <a-marker type="pattern" url="pattern-i.patt" id="micMarker">
-        <a-entity gltf-model="mic.glb" scale="1 1 1"></a-entity>
+        <a-entity gltf-model="mic.glb" scale="1 1 1" position="0 0 0" rotation="0 0 0"></a-entity>
       </a-marker>
 
-      <!-- Note marker -->
+        <!-- Note marker -->
       <a-marker type="pattern" url="pattern-bridge.patt" id="noteMarker">
-        <a-entity gltf-model="note.glb" scale="1 1 1"></a-entity>
+        <a-entity gltf-model="note.glb" scale="1 1 1" position="0 0 0" rotation="0 0 0"></a-entity>
       </a-marker>
 
       <a-entity camera></a-entity>
