@@ -28,20 +28,40 @@
         padding: 0.3em 0;
       }
 
-      /* Script button */
-      #scriptButton {
-        display: none; /* Hidden by default */
+      /* The UI panel for typing notes */
+      #noteUI {
         position: fixed;
         bottom: 20px;
         left: 50%;
         transform: translateX(-50%);
-        z-index: 20;
-        padding: 1em 2em;
-        font-size: 1.2em;
-        background-color: rgba(0, 0, 0, 0.7);
-        color: white;
-        border: none;
+        width: 80%;
+        max-width: 400px;
+        background: white;
+        padding: 15px;
         border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        display: none;
+        z-index: 20;
+      }
+
+      #noteInput {
+        width: 100%;
+        height: 70px;
+        font-size: 1em;
+        padding: 8px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        resize: none;
+      }
+
+      #saveNoteBtn {
+        width: 100%;
+        margin-top: 10px;
+        padding: 10px;
+        font-size: 1.1em;
+        background: #ffd966;
+        border: none;
+        border-radius: 8px;
         cursor: pointer;
       }
     </style>
@@ -54,6 +74,7 @@
         soundEl.components.sound.playSound();
         let step = targetVol / (duration / 100);
         let current = 0;
+
         let interval = setInterval(() => {
           current += step;
           if (current >= targetVol) {
@@ -68,8 +89,10 @@
       function fadeOutSound(soundEl, duration = 2000) {
         let audio = soundEl.components.sound.pool.children[0];
         if (!audio) return;
+
         let step = audio.volume / (duration / 100);
         let current = audio.volume;
+
         let interval = setInterval(() => {
           current -= step;
           if (current <= 0) {
@@ -84,25 +107,26 @@
       document.addEventListener("DOMContentLoaded", () => {
         const confirmSound = document.querySelector("#confirmSound");
         const ambientSound = document.querySelector("#ambientSound");
-        const scriptButton = document.querySelector("#scriptButton");
-        const scriptAudio = document.querySelector("#scriptAudio");
 
         let ambientStarted = false;
         let ambientPaused = false;
 
         function handleMarkerFound() {
           confirmSound.components.sound.playSound();
+
+          // Ambient ONLY starts after ticket is scanned first time
           if (!ambientStarted) {
             setTimeout(() => fadeInSound(ambientSound, 2000, 0.6), 2000);
             ambientStarted = true;
           }
         }
 
-        // Attach chime to every marker
         const markers = document.querySelectorAll("a-marker");
-        markers.forEach(marker => marker.addEventListener("markerFound", handleMarkerFound));
+        markers.forEach(marker => {
+          marker.addEventListener("markerFound", handleMarkerFound);
+        });
 
-        // Pause ambient for mic marker
+        // Mic marker pauses ambient permanently
         const micMarker = document.querySelector("#micMarker");
         micMarker.addEventListener("markerFound", () => {
           if (ambientStarted && !ambientPaused) {
@@ -111,23 +135,40 @@
           }
         });
 
-        // Show script button only when script marker is visible
-        const scriptMarker = document.querySelector("#scriptMarker");
-        scriptMarker.addEventListener("markerFound", () => {
-          scriptButton.style.display = "block";
-          // Pause ambient if needed
-          if (ambientStarted && !ambientPaused) {
-            fadeOutSound(ambientSound, 1000);
-            ambientPaused = true;
+        // ------------------------------
+        // ✅ STICKY NOTE SYSTEM
+        // ------------------------------
+        const noteMarker = document.querySelector("#noteMarker");
+        const noteContainer = document.querySelector("#noteContainer");
+        const noteUI = document.querySelector("#noteUI");
+
+        noteMarker.addEventListener("markerFound", () => {
+          console.log("Note marker scanned");
+
+          // Spawn note only once
+          if (!noteContainer.hasChildNodes()) {
+            const noteEntity = document.createElement("a-entity");
+            noteEntity.setAttribute("gltf-model", "note.glb");
+            noteEntity.setAttribute("scale", "1 1 1");
+            noteEntity.setAttribute("position", "0 0 -2");
+            noteEntity.setAttribute("rotation", "0 0 0");
+            noteContainer.appendChild(noteEntity);
           }
-        });
-        scriptMarker.addEventListener("markerLost", () => {
-          scriptButton.style.display = "none";
+
+          noteContainer.setAttribute("visible", "true");
+
+          // Show typing UI
+          noteUI.style.display = "block";
         });
 
-        // Play audio when button clicked
-        scriptButton.addEventListener("click", () => {
-          scriptAudio.play();
+        noteMarker.addEventListener("markerLost", () => {
+          console.log("Marker lost — note stays visible.");
+        });
+
+        // ✅ Save button currently just logs the text
+        document.querySelector("#saveNoteBtn").addEventListener("click", () => {
+          const text = document.querySelector("#noteInput").value;
+          alert("Your note has been saved:\n\n" + text);
         });
       });
     </script>
@@ -136,11 +177,11 @@
   <body>
     <div id="header">Scan Your Ticket!</div>
 
-    <!-- Script audio element -->
-    <audio id="scriptAudio" src="script.mp3"></audio>
-
-    <!-- Button overlay -->
-    <button id="scriptButton">Tap to listen</button>
+    <!-- UI panel for typing note -->
+    <div id="noteUI">
+      <textarea id="noteInput" placeholder="Type your note..."></textarea>
+      <button id="saveNoteBtn">Save</button>
+    </div>
 
     <a-scene embedded arjs>
       <!-- Global audio -->
@@ -152,25 +193,49 @@
         <a-entity gltf-model="marketticket.glb" scale="5 5 5"></a-entity>
       </a-marker>
 
-      <!-- Poster markers -->
+      <!-- Posters -->
       <a-marker type="pattern" url="pattern-triangle.patt" id="posterMarker1">
         <a-image src="poster1.png" width="4" height="6" rotation="-90 0 0" position="-1.5 1.5 0"></a-image>
       </a-marker>
+
       <a-marker type="pattern" url="pattern-circle.patt" id="posterMarker2">
         <a-image src="poster2.png" width="4" height="6" rotation="-90 0 0" position="-1.5 1.5 0"></a-image>
       </a-marker>
 
       <!-- Script marker -->
       <a-marker type="pattern" url="pattern-t.patt" id="scriptMarker">
-        <a-entity gltf-model="script.glb" scale="1 1 1" position="0 0 0" rotation="0 0 0"></a-entity>
+        <a-entity gltf-model="script.glb" scale="1 1 1"></a-entity>
+        <a-entity id="playScriptBtn"
+          geometry="primitive: plane; width: 1.8; height: 0.6"
+          material="color: #ffaa00"
+          position="0 -1 0"
+          text="value: Tap to Listen; align: center; color: black; width: 3"
+          sound="src: url(script.mp3); autoplay: false">
+        </a-entity>
       </a-marker>
 
       <!-- Microphone marker -->
       <a-marker type="pattern" url="pattern-i.patt" id="micMarker">
-        <a-entity gltf-model="mic.glb" scale="1 1 1" position="0 0 0" rotation="0 0 0"></a-entity>
+        <a-entity gltf-model="mic.glb" scale="1 1 1"></a-entity>
       </a-marker>
+
+      <!-- ✅ Sticky note marker (spawns detached note) -->
+      <a-marker type="pattern" url="pattern-bridge.patt" id="noteMarker"></a-marker>
+
+      <!-- ✅ The note appears here and stays even after marker lost -->
+      <a-entity id="noteContainer" visible="false"></a-entity>
 
       <a-entity camera></a-entity>
     </a-scene>
+
+    <script>
+      // Script button tap listener (kept outside scene)
+      document.addEventListener("DOMContentLoaded", () => {
+        const playBtn = document.querySelector("#playScriptBtn");
+        playBtn.addEventListener("click", () => {
+          playBtn.components.sound.playSound();
+        });
+      });
+    </script>
   </body>
 </html>
